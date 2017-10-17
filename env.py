@@ -1,4 +1,5 @@
 from random import choice
+from copy import deepcopy
 
 
 class Card(object):
@@ -15,8 +16,17 @@ class Card(object):
         return n if self.is_black else -n
 
     def __str__(self):
-        return '{}'.format(self.number) if self.is_black\
-                else '-{}'.format(self.number)
+        return str(self.value())
+
+    def __repr__(self):
+        return str(self.value())
+
+
+# class State(object):
+#
+#     def __init__(self):
+#         self.d_first = None
+#         self.p_sum = None
 
 
 class Easy21(object):
@@ -39,25 +49,27 @@ class Easy21(object):
 
     def step(self, action, d_cards, p_cards):
         if action == 'hit':
-            p_cards.append(Card())
-            if self.is_bust(p_cards):
+            p_cards_new = deepcopy(p_cards)
+            p_cards_new.append(Card())
+            if self.is_bust(p_cards_new):
                 # print('got {}... busted!'.format(self.sum_cards(p_cards)))
-                return d_cards, p_cards, True, -1
-            return d_cards, p_cards, False, 0
+                return d_cards, p_cards_new, True, -1
+            return d_cards, p_cards_new, False, 0
 
         if action == 'stick':
             d_sum = 0
-            while d_sum <= 17:
-                d_cards.append(Card())
-                d_sum = self.sum_cards(d_cards)
+            d_cards_new = deepcopy(d_cards)
+            while 0 <= d_sum < 17:
+                d_cards_new.append(Card())
+                d_sum = self.sum_cards(d_cards_new)
             if self.is_bust(p_cards):
-                return d_cards, p_cards, True, -1
+                return d_cards_new, p_cards, True, -1
             if self.is_bust(d_cards):
-                return d_cards, p_cards, True, 1
+                return d_cards_new, p_cards, True, 1
             p_sum = self.sum_cards(p_cards)
             if p_sum > d_sum:
-                return d_cards, p_cards, True, 1
+                return d_cards_new, p_cards, True, 1
             elif p_sum < d_sum:
-                return d_cards, p_cards, True, -1
+                return d_cards_new, p_cards, True, -1
             else:
-                return d_cards, p_cards, True, 0
+                return d_cards_new, p_cards, True, 0

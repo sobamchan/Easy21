@@ -7,10 +7,11 @@ import argparse
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import numpy as np
-# from pprint import pprint
+from copy import deepcopy
+from pprint import pprint
 
 
-N0 = 10
+N0 = 1000
 
 
 class MC(object):
@@ -38,10 +39,10 @@ class MC(object):
         return 'hit' if hit_v >= stick_v else 'stick'
 
     def eps_geedy(self, d, p):
-        # d_sum = self.env.sum_cards(d)
-        # p_sum = self.env.sum_cards(p)
-        # eps = N0 / (N0 + self.NS[d_sum, p_sum])
-        eps = 0.1
+        d_sum = self.env.sum_cards(d)
+        p_sum = self.env.sum_cards(p)
+        eps = N0 / (N0 + self.NS[d_sum, p_sum])
+        # eps = 0.1
         if random() < eps:
             self.RI += 1
             action = choice(['hit', 'stick'])
@@ -56,14 +57,13 @@ class MC(object):
 
     def one_episode(self, i):
         d, p, e, r = self.env.init()
-        self.init_N()
+        # self.init_N()
         total_reward = 0
         elap_step = 0
         episode_exp = []
         while not e:
             action = self.eps_geedy(d, p)
             dn, pn, e, r = self.env.step(action, d, p)
-            # print('action: ', action)
             total_reward += r
             d_sum = self.env.sum_cards(d)
             p_sum = self.env.sum_cards(p)
@@ -71,15 +71,23 @@ class MC(object):
             self.NA[d_sum, p_sum, action] += 1
             episode_exp.append([d_sum, p_sum, action, r])
             elap_step += 1
-            d = dn
-            p = pn
-
-        # if i % 100000 == 1:
-        #     print('user card sum', p_sum)
-        #     print('dealer card sum', d_sum)
-        #     print('total reward is: ', total_reward)
-        #     print('elap step is: ', elap_step)
-        #     input()
+            # if i % 1000 == 1:
+            #     print(action)
+            #     print('dealer before sum: ', d_sum)
+            #     print('dealer before cards: ', d)
+            #     print('player before sum: ', p_sum)
+            #     print('player before cards: ', p)
+            #     print()
+            #     print('dealer after sum: ', self.env.sum_cards(dn))
+            #     print('dealer after cards: ', dn)
+            #     print('player after sum: ', self.env.sum_cards(pn))
+            #     print('player after cards: ', pn)
+            #     print()
+            #     print(e)
+            #     print(r)
+            #     input()
+            d = deepcopy(dn)
+            p = deepcopy(pn)
 
         g = total_reward
         for d_sum, p_sum, action, r in episode_exp:
@@ -101,8 +109,9 @@ class MC(object):
         # print(set(list(self.NA.values())))
         # print(set(list(self.NS.values())))
         # print('random choise ratio', self.RI / iter_n)
-        # print('hit n:', self.hit_n)
-        # print('stick n:', self.stick_n)
+        print('hit n:', self.hit_n)
+        print('stick n:', self.stick_n)
+        pprint(self.Q)
 
         if args.p:
             X = []
