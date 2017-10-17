@@ -100,20 +100,22 @@ class MC(object):
     def learn(self, args):
         total_reward = 0
         iter_n = args.i
+        episode_rewards_accum = []
         for i in tqdm(range(iter_n), total=iter_n):
             reward = self.one_episode(i)
             total_reward += reward
+            episode_rewards_accum.append(total_reward)
 
         print('avg win: ', total_reward / iter_n)
         # print(set(list(self.Q.values())))
         # print(set(list(self.NA.values())))
         # print(set(list(self.NS.values())))
         # print('random choise ratio', self.RI / iter_n)
-        print('hit n:', self.hit_n)
-        print('stick n:', self.stick_n)
-        pprint(self.Q)
+        # print('hit n:', self.hit_n)
+        # print('stick n:', self.stick_n)
+        # pprint(self.Q)
 
-        if args.p:
+        if args.p1:
             X = []
             Y = []
             Z = []
@@ -125,12 +127,18 @@ class MC(object):
             ax = Axes3D(fig)
             ax.scatter3D(np.ravel(X), np.ravel(Y), np.ravel(Z))
             plt.show()
+        if args.p2:
+            X = range(len(episode_rewards_accum))
+            Y = episode_rewards_accum
+            plt.bar(X, Y)
+            plt.savefig('./episode_rewards_accum_{}.png'.format(str(iter_n)))
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', type=int)
-    parser.add_argument('-p', type=int, default=0)
+    parser.add_argument('-p1', type=int, default=0)
+    parser.add_argument('-p2', type=int, default=0)
     args = parser.parse_args()
     mc = MC()
     mc.learn(args)
